@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kolkata Durga Puja Route Planner 2026</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pujaRed: '#D90429',
+                        pujaDarkRed: '#8B0000',
+                        pujaGold: '#FFB703',
+                        pujaCream: '#FFFDF9',
+                        pujaDark: '#2B2D42'
+                    },
+                    fontFamily: {
+                        poppins: ['Poppins', 'sans-serif'],
+                        bengali: ['Tiro Bangla', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #FFFDF9; color: #2B2D42; }
+        .bengali-text { font-family: 'Tiro Bangla', serif; }
+        #map { height: 460px; width: 100%; border-radius: 1rem; z-index: 10; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #D90429; border-radius: 4px; }
+        .alpona-border {
+            background-image: repeating-linear-gradient(45deg, #D90429, #D90429 10px, #FFB703 10px, #FFB703 20px);
+            height: 6px;
+        }
+        .kashful-bg {
+            background-image: radial-gradient(#FFB703 0.75px, transparent 0.75px), radial-gradient(#D90429 0.75px, #FFFDF9 0.75px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            opacity: 0.03;
+        }
+    </style>
+</head>
+<body class="bg-pujaCream min-h-screen flex flex-col relative">
+
+    <!-- Decorative Subtle Kashful Background Pattern -->
+    <div class="absolute inset-0 kashful-bg pointer-events-none z-0"></div>
+
+    <!-- Top Alpona Decorative Border -->
+    <div class="alpona-border w-full z-10"></div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-pujaDarkRed via-red-900 to-pujaDarkRed text-white shadow-xl relative overflow-hidden z-10">
+        <div class="absolute -right-8 -bottom-8 opacity-15 text-8xl pointer-events-none">
+            <i class="fa-solid fa-drum text-pujaGold"></i>
+        </div>
+        <div class="absolute left-4 top-2 opacity-15 text-7xl pointer-events-none">
+            <i class="fa-solid fa-feather-pointed text-white"></i>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-4 relative z-10">
+            <div class="flex items-center space-x-4">
+                <div class="bg-pujaGold text-pujaDarkRed p-3.5 rounded-2xl shadow-lg text-3xl font-bold border-2 border-amber-200">
+                    <i class="fa-solid fa-gopuram"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                        Kolkata Durga Puja Route Planner <span class="bg-pujaGold text-pujaDarkRed text-xs font-bold px-2.5 py-0.5 rounded-full">2026</span>
+                    </h1>
+                    <p class="text-xs md:text-sm text-amber-200 bengali-text mt-1 flex items-center gap-2">
+                        <span><i class="fa-solid fa-feather text-amber-300"></i> দুর্গাপূজার প্রীতি ও শুভেচ্ছা!</span>
+                        <span class="hidden sm:inline">• ঢাকের বাদ্য ও কাশফুলের পরশে আপনার প্যান্ডেল পরিক্রমা সুগম হোক।</span>
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="openHostingModal()" class="bg-black/30 hover:bg-black/40 border border-pujaGold/60 text-pujaGold text-xs font-semibold px-4 py-2.5 rounded-xl transition duration-200 flex items-center gap-2 shadow">
+                    <i class="fa-solid fa-globe"></i> Free Hosting Guide
+                </button>
+                <div class="bg-black/40 backdrop-blur-md px-4 py-2.5 rounded-xl border border-white/20 text-xs text-center shadow">
+                    <span class="block text-pujaGold font-bold text-base leading-none" id="selected-count">0</span>
+                    <span class="text-[10px] text-gray-200 uppercase tracking-wider">Pandals</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main App Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6 z-10">
+
+        <!-- Left Controls Column (Cols 1-6) -->
+        <div class="lg:col-span-6 space-y-6">
+
+            <!-- Journey Setup Card -->
+            <div class="bg-white rounded-2xl shadow-lg border border-orange-100 p-5 space-y-5 relative">
+                <div class="flex items-center justify-between border-b border-orange-100 pb-3">
+                    <h2 class="text-base font-bold text-pujaDarkRed flex items-center gap-2">
+                        <i class="fa-solid fa-location-crosshairs text-pujaGold text-lg"></i>
+                        <span>Journey Locations</span>
+                    </h2>
+                    <span class="text-[11px] font-semibold text-pujaRed bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200">
+                        <i class="fa-solid fa-drum mr-1"></i> Live Search Active
+                    </span>
+                </div>
+
+                <!-- Starting Location Search Box -->
+                <div class="relative space-y-1">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center justify-between">
+                        <span><i class="fa-solid fa-circle-dot text-green-600 mr-1.5"></i> 1. Starting Point</span>
+                        <button onclick="detectGPS('start')" class="text-[11px] text-blue-600 hover:underline flex items-center gap-1 font-normal">
+                            <i class="fa-solid fa-crosshairs"></i> Use My GPS Location
+                        </button>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="start-location-input" placeholder="Type start place (e.g. Howrah Station, Salt Lake, Airport...)" 
+                            class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pujaRed focus:bg-white transition font-medium"
+                            autocomplete="off">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-xs"></i>
+                    </div>
+
+                    <!-- Quick Hub Fast Pills -->
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        <span class="text-[10px] text-gray-500 self-center mr-1 font-medium">Popular:</span>
+                        <button type="button" onclick="setQuickLocation('start', 'Howrah Station', 22.5851, 88.3414)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Howrah Stn</button>
+                        <button type="button" onclick="setQuickLocation('start', 'Sealdah Station', 22.5697, 88.3705)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Sealdah Stn</button>
+                        <button type="button" onclick="setQuickLocation('start', 'Esplanade', 22.5647, 88.3514)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Esplanade</button>
+                        <button type="button" onclick="setQuickLocation('start', 'Shyambazar', 22.5984, 88.3705)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Shyambazar</button>
+                    </div>
+
+                    <!-- Autocomplete Suggestions Dropdown -->
+                    <div id="start-dropdown" class="absolute z-50 left-0 right-0 bg-white border border-orange-200 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto hidden custom-scrollbar"></div>
+                </div>
+
+                <!-- Ending Location Search Box -->
+                <div class="relative space-y-1 pt-1">
+                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider flex items-center justify-between">
+                        <span><i class="fa-solid fa-flag-checkered text-pujaRed mr-1.5"></i> 2. Final Destination</span>
+                        <button onclick="detectGPS('end')" class="text-[11px] text-blue-600 hover:underline flex items-center gap-1 font-normal">
+                            <i class="fa-solid fa-crosshairs"></i> Use My GPS Location
+                        </button>
+                    </label>
+                    <div class="relative">
+                        <input type="text" id="end-location-input" placeholder="Type destination place (e.g. Sealdah Station, Park Street...)" 
+                            class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-pujaRed focus:bg-white transition font-medium"
+                            autocomplete="off">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-xs"></i>
+                    </div>
+
+                    <!-- Quick Hub Fast Pills -->
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        <span class="text-[10px] text-gray-500 self-center mr-1 font-medium">Popular:</span>
+                        <button type="button" onclick="setQuickLocation('end', 'Sealdah Station', 22.5697, 88.3705)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Sealdah Stn</button>
+                        <button type="button" onclick="setQuickLocation('end', 'Howrah Station', 22.5851, 88.3414)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Howrah Stn</button>
+                        <button type="button" onclick="setQuickLocation('end', 'Park Street', 22.5551, 88.3526)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Park St</button>
+                        <button type="button" onclick="setQuickLocation('end', 'Gariahat', 22.5181, 88.3686)" class="text-[11px] bg-amber-50 hover:bg-amber-100 text-pujaDarkRed px-2.5 py-0.5 rounded-full border border-amber-200 font-medium">Gariahat</button>
+                    </div>
+
+                    <!-- Autocomplete Suggestions Dropdown -->
+                    <div id="end-dropdown" class="absolute z-50 left-0 right-0 bg-white border border-orange-200 rounded-xl shadow-2xl mt-1 max-h-56 overflow-y-auto hidden custom-scrollbar"></div>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="calculateOptimizedRoutes()" class="w-full bg-gradient-to-r from-pujaRed to-pujaDarkRed hover:from-red-700 hover:to-red-900 text-white font-bold py-3.5 px-4 rounded-xl shadow-xl transition transform active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider border border-red-500">
+                    <i class="fa-solid fa-wand-magic-sparkles text-pujaGold text-base"></i> Generate Optimized Durga Puja Route
+                </button>
+            </div>
+
+            <!-- Pandal Directory & Proximity Card -->
+            <div class="bg-white rounded-2xl shadow-lg border border-orange-100 p-5 space-y-4">
+                
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-orange-100 pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-pujaDarkRed flex items-center gap-2">
+                            <i class="fa-solid fa-torii-gate text-pujaGold text-lg"></i>
+                            <span>Durga Puja Pandal Directory</span>
+                        </h2>
+                        <p class="text-[11px] text-gray-500 mt-0.5">Pandals dynamically ranked by proximity to your chosen journey locations.</p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <button onclick="selectAllPandals()" class="text-pujaRed font-bold hover:underline">Select All</button>
+                        <span class="text-gray-300">|</span>
+                        <button onclick="clearAllPandals()" class="text-gray-500 font-bold hover:underline">Clear</button>
+                    </div>
+                </div>
+
+                <!-- Filters & Search Bar -->
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative flex-grow">
+                        <input type="text" id="pandal-search" oninput="filterPandals()" placeholder="Search pandals by name, landmark or neighborhood..." 
+                            class="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-pujaRed focus:bg-white transition">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-xs"></i>
+                    </div>
+                    <select id="zone-filter" onchange="filterPandals()" class="bg-gray-50 border border-gray-300 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-pujaRed">
+                        <option value="ALL">All City Zones</option>
+                        <option value="North & Central Kolkata">I. North & Central Kolkata</option>
+                        <option value="South & South-East Kolkata">II. South & South-East Kolkata</option>
+                        <option value="Port Area">III. Port Area</option>
+                        <option value="South Suburban & South-West Kolkata">IV. South Suburban & SW</option>
+                    </select>
+                </div>
+
+                <!-- Pandal List Container -->
+                <div id="pandal-list" class="space-y-2.5 max-h-[420px] overflow-y-auto pr-1.5 custom-scrollbar">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Map & Outputs Column (Cols 7-12) -->
+        <div class="lg:col-span-6 space-y-6">
+
+            <!-- Interactive Map Card -->
+            <div class="bg-white rounded-2xl shadow-lg border border-orange-100 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-pujaDarkRed text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-pujaGold text-base"></i> Interactive Puja Circuit Map
+                    </h3>
+                    <span class="text-[11px] font-semibold text-gray-600 bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                        Leaflet & OpenStreetMap
+                    </span>
+                </div>
+                <div id="map"></div>
+            </div>
+
+            <!-- Output Route Cards Section -->
+            <div id="route-output-container" class="space-y-4 hidden">
+
+                <!-- Route Mode Tab Switcher -->
+                <div class="flex bg-orange-100/70 p-1.5 rounded-2xl gap-2">
+                    <button onclick="switchRouteTab('walking')" id="tab-walking" class="flex-1 py-3 px-3 rounded-xl font-bold text-xs uppercase transition flex items-center justify-center gap-2 bg-pujaDarkRed text-white shadow-md">
+                        <i class="fa-solid fa-person-walking text-base"></i> 1. Walking Route
+                    </button>
+                    <button onclick="switchRouteTab('blended')" id="tab-blended" class="flex-1 py-3 px-3 rounded-xl font-bold text-xs uppercase transition flex items-center justify-center gap-2 bg-white text-gray-700 hover:bg-orange-50">
+                        <i class="fa-solid fa-car-side text-base"></i> 2. Vehicle + Walk
+                    </button>
+                </div>
+
+                <!-- Walking Route Panel -->
+                <div id="panel-walking" class="route-panel bg-white rounded-2xl shadow-lg border border-orange-100 p-5 space-y-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+                        <div>
+                            <h4 class="font-bold text-pujaDarkRed text-base flex items-center gap-2">
+                                <i class="fa-solid fa-person-walking text-pujaGold"></i> Walking-Only Optimized Circuit
+                            </h4>
+                            <p class="text-xs text-gray-500 font-medium" id="walk-stats">Total Distance: -- km | Estimated Time: -- mins</p>
+                        </div>
+                        <a id="walk-gmaps-btn" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md shrink-0">
+                            <i class="fa-solid fa-map-location"></i> Open in Google Maps
+                        </a>
+                    </div>
+                    <div id="walk-steps" class="space-y-2.5">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Blended Route Panel -->
+                <div id="panel-blended" class="route-panel bg-white rounded-2xl shadow-lg border border-orange-100 p-5 space-y-4 hidden">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-gray-100 pb-3">
+                        <div>
+                            <h4 class="font-bold text-pujaDarkRed text-base flex items-center gap-2">
+                                <i class="fa-solid fa-car-side text-pujaGold"></i> Blended Vehicle + Walking Circuit
+                            </h4>
+                            <p class="text-xs text-gray-500 font-medium" id="blended-stats">Total Distance: -- km | Estimated Time: -- mins</p>
+                        </div>
+                        <a id="blended-gmaps-btn" href="#" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2 shadow-md shrink-0">
+                            <i class="fa-solid fa-map-location"></i> Open in Google Maps
+                        </a>
+                    </div>
+                    <div id="blended-steps" class="space-y-2.5">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Traffic Restrictions Notice Box -->
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl text-xs text-amber-900 space-y-1 shadow-sm">
+                    <p class="font-bold flex items-center gap-1.5 text-amber-800 text-xs">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> Festival Traffic & Barricade Notice
+                    </p>
+                    <p class="text-[11px] leading-relaxed">
+                        Current road closures, Durga Puja traffic restrictions, one-way police diversions, and temporary pedestrian barricades have not been fully accounted for in these automated GPS calculations. Please verify local road guidelines before travelling.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Empty State Prompt -->
+            <div id="empty-output-state" class="bg-white rounded-2xl shadow-lg border border-orange-100 p-8 text-center space-y-4">
+                <div class="w-16 h-16 bg-orange-100 text-pujaRed rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+                    <i class="fa-solid fa-drum"></i>
+                </div>
+                <div class="space-y-1">
+                    <h3 class="font-bold text-pujaDarkRed text-base">Build Your Durga Puja Circuit</h3>
+                    <p class="text-xs text-gray-600 max-w-sm mx-auto leading-relaxed">
+                        Select your start and end points, check off your target Durga Puja pandals from the directory, and click <strong class="text-pujaRed">"Generate Optimized Route"</strong>!
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Hosting Modal -->
+    <div id="hosting-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-orange-100 relative">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="font-bold text-pujaDarkRed text-base flex items-center gap-2">
+                    <i class="fa-solid fa-globe text-pujaGold"></i> Publish Free to Internet
+                </h3>
+                <button onclick="closeHostingModal()" class="text-gray-400 hover:text-gray-700 text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-3 text-xs text-gray-700 leading-relaxed">
+                <p>You can host this entire web application <strong>100% free of cost</strong> on static hosting platforms:</p>
+                
+                <div class="bg-orange-50 p-3.5 rounded-2xl border border-orange-200 space-y-1.5">
+                    <p class="font-bold text-pujaDarkRed flex items-center gap-1.5">
+                        <i class="fa-brands fa-github text-base"></i> Option 1: GitHub Pages (Easiest)
+                    </p>
+                    <ol class="list-decimal pl-4 space-y-1 text-gray-600">
+                        <li>Create a free account on <a href="https://github.com" target="_blank" class="text-blue-600 underline">GitHub</a>.</li>
+                        <li>Create a public repository named <code class="bg-white px-1.5 py-0.5 rounded border font-mono">kolkata-durga-puja-planner</code>.</li>
+                        <li>Upload this exact file saved as <code class="bg-white px-1.5 py-0.5 rounded border font-mono">index.html</code>.</li>
+                        <li>In repository <strong>Settings</strong> &gt; <strong>Pages</strong>, select branch <code class="bg-white px-1.5 py-0.5 rounded border font-mono">main</code> and click Save!</li>
+                    </ol>
+                </div>
+
+                <div class="bg-gray-50 p-3.5 rounded-2xl border border-gray-200 space-y-1.5">
+                    <p class="font-bold text-gray-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-amber-500 text-base"></i> Option 2: Netlify Drop
+                    </p>
+                    <ol class="list-decimal pl-4 space-y-1 text-gray-600">
+                        <li>Go to <a href="https://drop.netlify.com" target="_blank" class="text-blue-600 underline">Netlify Drop</a>.</li>
+                        <li>Drag and drop the folder containing your <code class="bg-white px-1.5 py-0.5 rounded border font-mono">index.html</code> file.</li>
+                        <li>Instantly receive a live shareable URL for WhatsApp!</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="pt-2 text-right">
+                <button onclick="closeHostingModal()" class="bg-pujaDarkRed text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow hover:bg-red-900 transition">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-pujaDark text-white py-6 text-center text-xs space-y-2 mt-auto z-10">
+        <div class="alpona-border w-full opacity-30 mb-3"></div>
+        <p class="bengali-text text-sm text-pujaGold">✨ আসুন সবাই মিলে আনন্দ উপভোগ করি | শুভ দুর্গাপূজা ২০২৬ ✨</p>
+        <p class="text-gray-400">Kolkata Durga Puja Route Planner • Built with Leaflet & OpenStreetMap</p>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Self-Contained Application Script -->
+    <script>
+        // --- 1. Master Kolkata Landmarks & Hubs Dataset ---
+        const kolkataLandmarks = [
+            { name: "Howrah Station", lat: 22.5851, lng: 88.3414, type: "Railway Hub" },
+            { name: "Sealdah Station", lat: 22.5697, lng: 88.3705, type: "Railway Hub" },
+            { name: "Esplanade", lat: 22.5647, lng: 88.3514, type: "Metro & Bus Hub" },
+            { name: "Park Street", lat: 22.5551, lng: 88.3526, type: "Central Landmark" },
+            { name: "Shyambazar Five Point", lat: 22.5984, lng: 88.3705, type: "North Hub" },
+            { name: "Gariahat Crossing", lat: 22.5181, lng: 88.3686, type: "South Hub" },
+            { name: "Jadavpur 8B", lat: 22.4950, lng: 88.3692, type: "South Landmark" },
+            { name: "Salt Lake Sector V", lat: 22.5726, lng: 88.4372, type: "IT & Transport Hub" },
+            { name: "New Town City Centre 2", lat: 22.6258, lng: 88.4591, type: "New Town Landmark" },
+            { name: "Kolkata Airport (CCU)", lat: 22.6547, lng: 88.4467, type: "Airport" },
+            { name: "Dum Dum Metro", lat: 22.6200, lng: 88.3976, type: "Metro Hub" },
+            { name: "Tollygunge Metro", lat: 22.4956, lng: 88.3486, type: "Metro Hub" },
+            { name: "Kalighat Temple", lat: 22.5208, lng: 88.3475, type: "Heritage Site" },
+            { name: "College Street", lat: 22.5726, lng: 88.3639, type: "Central Landmark" },
+            { name: "Ballygunge Phari", lat: 22.5265, lng: 88.3655, type: "South Hub" },
+            { name: "Behala Tram Depot", lat: 22.4996, lng: 88.3188, type: "South-West Hub" },
+            { name: "Khidirpur Crossing", lat: 22.5414, lng: 88.3248, type: "Port Area Hub" },
+            { name: "Ultadanga Crossing", lat: 22.5958, lng: 88.3846, type: "North-East Hub" }
+        ];
+
+        // --- 2. Master Kolkata Durga Puja Pandals Dataset ---
+        const pujaPandals = [
+            // North & Central Kolkata
+            { id: 1, name: "Bagbazar Sarbojanin", area: "Bagbazar", zone: "North & Central Kolkata", lat: 22.6048, lng: 88.3698, desc: "Traditional ekchala idol and traditional heritage carnival." },
+            { id: 2, name: "Kumartuli Park", area: "Kumartuli", zone: "North & Central Kolkata", lat: 22.5982, lng: 88.3621, desc: "Famed for artistic theme concepts near artisan quarters." },
+            { id: 3, name: "Ahiritola Sarbojanin", area: "Ahiritola", zone: "North & Central Kolkata", lat: 22.5921, lng: 88.3578, desc: "Renowned for innovative social themes and intricate art." },
+            { id: 4, name: "Sovabazar Rajbari", area: "Sovabazar", zone: "North & Central Kolkata", lat: 22.5954, lng: 88.3642, desc: "Centuries-old heritage Rajbari Durga Puja celebrations." },
+            { id: 5, name: "College Square", area: "College Street", zone: "North & Central Kolkata", lat: 22.5732, lng: 88.3645, desc: "Legendary water reflection lighting display over the lake." },
+            { id: 6, name: "Santosh Mitra Square", area: "Lebutala / Bowbazar", zone: "North & Central Kolkata", lat: 22.5661, lng: 88.3678, desc: "Spectacular grand lighting and architectural replicas." },
+            { id: 7, name: "Mohammad Ali Park", area: "Central Avenue", zone: "North & Central Kolkata", lat: 22.5794, lng: 88.3615, desc: "Magnificent palace replicas and vibrant festive illumination." },
+            { id: 8, name: "Sikdar Bagan", area: "Shyambazar", zone: "North & Central Kolkata", lat: 22.5991, lng: 88.3742, desc: "Creative neighborhood pandal with delicate folk art details." },
+
+            // South & South-East Kolkata
+            { id: 9, name: "Ekdalia Evergreen", area: "Ballygunge", zone: "South & South-East Kolkata", lat: 22.5182, lng: 88.3714, desc: "Traditional tall temple replica with massive German chandeliers." },
+            { id: 10, name: "Singhi Park", area: "Gariahat", zone: "South & South-East Kolkata", lat: 22.5204, lng: 88.3672, desc: "Classic aesthetic pandal celebrating temple heritage." },
+            { id: 11, name: "Hindustan Park", area: "Gariahat", zone: "South & South-East Kolkata", lat: 22.5175, lng: 88.3624, desc: "Pioneering artistic conceptual themes and refined art." },
+            { id: 12, name: "Deshapriya Park", area: "Rashbehari", zone: "South & South-East Kolkata", lat: 22.5235, lng: 88.3556, desc: "Famous for colossal crowd gatherings and monumental scale." },
+            { id: 13, name: "Ballygunge Cultural", area: "Ballygunge", zone: "South & South-East Kolkata", lat: 22.5241, lng: 88.3645, desc: "Sophisticated art installations and eco-friendly motifs." },
+            { id: 14, name: "Badamtala Ashra Sangha", area: "Kalighat", zone: "South & South-East Kolkata", lat: 22.5212, lng: 88.3479, desc: "Exquisite traditional craftsmanship and heartfelt community vibe." },
+            { id: 15, name: "Suruchi Sangha", area: "New Alipore", zone: "South & South-East Kolkata", lat: 22.5142, lng: 88.3371, desc: "Award-winning state-themed artwork and cultural performances." },
+            { id: 16, name: "Mudiali Club", area: "Lake Area", zone: "South & South-East Kolkata", lat: 22.5115, lng: 88.3512, desc: "Stunning light reflections over water bodies and classic idol." },
+            { id: 17, name: "Tridhara Sammilani", area: "Rashbehari", zone: "South & South-East Kolkata", lat: 22.5224, lng: 88.3592, desc: "Fusion of traditional rituals with contemporary fine art." },
+
+            // Port Area
+            { id: 18, name: "Khidirpur 26 Palli", area: "Khidirpur", zone: "Port Area", lat: 22.5445, lng: 88.3275, desc: "Vibrant community celebration in the historic port precinct." },
+
+            // South Suburban & South-West Kolkata
+            { id: 19, name: "Naktala Udayan Sangha", area: "Naktala", zone: "South Suburban & South-West Kolkata", lat: 22.4782, lng: 88.3754, desc: "Massive popularity for modern artistic concepts." },
+            { id: 20, name: "Barisha Club", area: "Behala", zone: "South Suburban & South-West Kolkata", lat: 22.4965, lng: 88.3198, desc: "Thought-provoking sociological and emotional themes." },
+            { id: 21, name: "Behala Debdaru Path", area: "Behala", zone: "South Suburban & South-West Kolkata", lat: 22.5021, lng: 88.3271, desc: "Eminent artistic concepts exploring local Bengal culture." }
+        ];
+
+        // --- 3. App State Variables ---
+        let selectedPandalIds = new Set([1, 2, 5, 9, 12, 15]); // Default selected pandals
+        let startLocation = { name: "Howrah Station", lat: 22.5851, lng: 88.3414 };
+        let endLocation = { name: "Sealdah Station", lat: 22.5697, lng: 88.3705 };
+
+        let map = null;
+        let mapMarkers = [];
+        let routePolylines = [];
+        let currentRoutesData = null;
+
+        // --- 4. App Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            renderPandalList();
+            
+            // Set initial input field values
+            document.getElementById('start-location-input').value = startLocation.name;
+            document.getElementById('end-location-input').value = endLocation.name;
+
+            // Bind autocomplete listeners
+            bindAutocomplete('start-location-input', 'start-dropdown', 'start');
+            bindAutocomplete('end-location-input', 'end-dropdown', 'end');
+
+            updateSelectedCount();
+        });
+
+        // --- 5. Map Setup ---
+        function initMap() {
+            map = L.map('map').setView([22.5726, 88.3639], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }).addTo(map);
+
+            plotMarkersOnMap();
+        }
+
+        function plotMarkersOnMap() {
+            clearMapLayers();
+
+            pujaPandals.forEach(p => {
+                const isSelected = selectedPandalIds.has(p.id);
+                const markerColor = isSelected ? '#D90429' : '#9ca3af';
+                const markerHtml = `<div style="background-color:${markerColor}; width:24px; height:24px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; font-size:10px; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.3);">${p.id}</div>`;
+
+                const customIcon = L.divIcon({
+                    className: 'custom-pandal-marker',
+                    html: markerHtml,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                const marker = L.marker([p.lat, p.lng], { icon: customIcon }).addTo(map);
+                marker.bindPopup(`<b>${p.name}</b><br><span style="font-size:11px; color:#666;">${p.area}</span><p style="margin-top:4px; font-size:11px;">${p.desc}</p>`);
+                mapMarkers.push(marker);
+            });
+        }
+
+        function clearMapLayers() {
+            mapMarkers.forEach(m => map.removeLayer(m));
+            mapMarkers = [];
+            routePolylines.forEach(p => map.removeLayer(p));
+            routePolylines = [];
+        }
+
+        // --- 6. Distance Calculations & Ranking ---
+        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function renderPandalList() {
+            const container = document.getElementById('pandal-list');
+            const searchQuery = document.getElementById('pandal-search').value.toLowerCase();
+            const selectedZone = document.getElementById('zone-filter').value;
+
+            container.innerHTML = '';
+
+            // Compute distance to start location for each pandal
+            const rankedPandals = pujaPandals.map(p => {
+                const distToStart = calculateHaversineDistance(startLocation.lat, startLocation.lng, p.lat, p.lng);
+                return { ...p, distToStart };
+            }).sort((a, b) => a.distToStart - b.distToStart);
+
+            const filtered = rankedPandals.filter(p => {
+                const matchesSearch = p.name.toLowerCase().includes(searchQuery) || p.area.toLowerCase().includes(searchQuery);
+                const matchesZone = selectedZone === 'ALL' || p.zone === selectedZone;
+                return matchesSearch && matchesZone;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">No pandals found matching your filter criteria.</p>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const isChecked = selectedPandalIds.has(p.id);
+                const div = document.createElement('div');
+                div.className = `flex items-start gap-3 p-3 rounded-xl border transition cursor-pointer ${isChecked ? 'bg-red-50/70 border-red-200 shadow-sm' : 'bg-white border-gray-100 hover:bg-gray-50'}`;
+                div.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        togglePandal(p.id);
+                    }
+                };
+
+                const isNearStart = p.distToStart <= 3.0;
+
+                div.innerHTML = `
+                    <input type="checkbox" id="pandal-chk-${p.id}" ${isChecked ? 'checked' : ''} onchange="togglePandal(${p.id})" class="mt-1 w-4 h-4 text-pujaRed rounded border-gray-300 focus:ring-pujaRed cursor-pointer">
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between gap-1">
+                            <h4 class="font-bold text-xs text-pujaDarkRed flex items-center gap-1.5">
+                                <span>${p.name}</span>
+                                ${isNearStart ? '<span class="bg-green-100 text-green-800 text-[9px] px-1.5 py-0.2 rounded-full font-semibold"><i class="fa-solid fa-location-arrow text-[8px]"></i> Near Start</span>' : ''}
+                            </h4>
+                            <span class="text-[10px] font-semibold bg-amber-50 text-amber-900 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">${p.area}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-600 mt-1">${p.desc}</p>
+                        <p class="text-[10px] text-gray-400 mt-1"><i class="fa-solid fa-route mr-1"></i>~${p.distToStart.toFixed(1)} km from ${startLocation.name}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function togglePandal(id) {
+            if (selectedPandalIds.has(id)) {
+                selectedPandalIds.delete(id);
+            } else {
+                selectedPandalIds.add(id);
+            }
+            renderPandalList();
+            updateSelectedCount();
+            plotMarkersOnMap();
+        }
+
+        function selectAllPandals() {
+            pujaPandals.forEach(p => selectedPandalIds.add(p.id));
+            renderPandalList();
+            updateSelectedCount();
+            plotMarkersOnMap();
+        }
+
+        function clearAllPandals() {
+            selectedPandalIds.clear();
+            renderPandalList();
+            updateSelectedCount();
+            plotMarkersOnMap();
+        }
+
+        function filterPandals() {
+            renderPandalList();
+        }
+
+        function updateSelectedCount() {
+            document.getElementById('selected-count').innerText = selectedPandalIds.size;
+        }
+
+        // --- 7. Location Autocomplete Engine ---
+        function setQuickLocation(type, name, lat, lng) {
+            if (type === 'start') {
+                startLocation = { name, lat, lng };
+                document.getElementById('start-location-input').value = name;
+            } else {
+                endLocation = { name, lat, lng };
+                document.getElementById('end-location-input').value = name;
+            }
+            renderPandalList();
+        }
+
+        function bindAutocomplete(inputId, dropdownId, type) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let debounceTimer;
+
+            const handleSearch = () => {
+                const query = input.value.trim().toLowerCase();
+                clearTimeout(debounceTimer);
+
+                if (query.length < 1) {
+                    dropdown.classList.add('hidden');
+                    return;
+                }
+
+                debounceTimer = setTimeout(async () => {
+                    // Match local landmarks
+                    const landmarkMatches = kolkataLandmarks.filter(l => l.name.toLowerCase().includes(query))
+                        .map(l => ({ name: l.name, lat: l.lat, lng: l.lng, source: l.type }));
+
+                    // Match pandals
+                    const pandalMatches = pujaPandals.filter(p => p.name.toLowerCase().includes(query) || p.area.toLowerCase().includes(query))
+                        .map(p => ({ name: `${p.name} (${p.area})`, lat: p.lat, lng: p.lng, source: 'Durga Puja Pandal' }));
+
+                    let combined = [...landmarkMatches, ...pandalMatches];
+
+                    // Query Nominatim OpenStreetMap API
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", Kolkata")}&viewbox=88.2,22.4,88.5,22.7&bounded=1&limit=5`);
+                        const apiResults = await res.json();
+                        apiResults.forEach(item => {
+                            const shortName = item.display_name.split(',')[0] + " (" + (item.display_name.split(',')[1] || "Kolkata") + ")";
+                            if (!combined.some(c => c.name.toLowerCase() === shortName.toLowerCase())) {
+                                combined.push({ name: shortName, lat: parseFloat(item.lat), lng: parseFloat(item.lon), source: 'Kolkata Address' });
+                            }
+                        });
+                    } catch (err) {
+                        console.log("Nominatim API fallback used local landmarks.");
+                    }
+
+                    renderDropdownResults(dropdown, combined, type, input);
+                }, 200);
+            };
+
+            input.addEventListener('input', handleSearch);
+            input.addEventListener('focus', handleSearch);
+
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        function renderDropdownResults(dropdown, items, type, inputElement) {
+            dropdown.innerHTML = '';
+            if (items.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            items.slice(0, 7).forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'px-4 py-2.5 text-xs hover:bg-orange-50 cursor-pointer border-b border-gray-100 flex items-center justify-between transition';
+                div.innerHTML = `
+                    <span class="font-medium text-gray-800"><i class="fa-solid fa-location-dot text-pujaRed mr-2"></i>${item.name}</span>
+                    <span class="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">${item.source}</span>
+                `;
+                div.onclick = () => {
+                    inputElement.value = item.name;
+                    if (type === 'start') {
+                        startLocation = { name: item.name, lat: item.lat, lng: item.lng };
+                    } else {
+                        endLocation = { name: item.name, lat: item.lat, lng: item.lng };
+                    }
+                    dropdown.classList.add('hidden');
+                    renderPandalList();
+                };
+                dropdown.appendChild(div);
+            });
+            dropdown.classList.remove('hidden');
+        }
+
+        function detectGPS(type) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const name = "My Current Location";
+                    if (type === 'start') {
+                        startLocation = { name, lat, lng };
+                        document.getElementById('start-location-input').value = name;
+                    } else {
+                        endLocation = { name, lat, lng };
+                        document.getElementById('end-location-input').value = name;
+                    }
+                    renderPandalList();
+                    alert("GPS location detected successfully!");
+                }, () => {
+                    alert("Could not access GPS location. Please type manually.");
+                });
+            } else {
+                alert("Geolocation is not supported by your web browser.");
+            }
+        }
+
+        // --- 8. Route TSP Optimization Solver (2-Opt) ---
+        function calculateOptimizedRoutes() {
+            if (selectedPandalIds.size === 0) {
+                alert("Please select at least one Durga Puja pandal to generate a route.");
+                return;
+            }
+
+            const targetPandals = pujaPandals.filter(p => selectedPandalIds.has(p.id));
+
+            const walkingRoute = solveTSP(startLocation, targetPandals, endLocation, 'walking');
+            const blendedRoute = solveTSP(startLocation, targetPandals, endLocation, 'blended');
+
+            currentRoutesData = { walking: walkingRoute, blended: blendedRoute };
+
+            renderRouteOutputs();
+            renderRouteOnMap('walking');
+
+            document.getElementById('empty-output-state').classList.add('hidden');
+            document.getElementById('route-output-container').classList.remove('hidden');
+        }
+
+        function solveTSP(start, pandals, end, mode) {
+            let unvisited = [...pandals];
+            let current = start;
+            let ordered = [];
+
+            // Nearest Neighbor First Pass
+            while (unvisited.length > 0) {
+                let nearestIdx = 0;
+                let minDist = Infinity;
+                for (let i = 0; i < unvisited.length; i++) {
+                    const d = calculateHaversineDistance(current.lat, current.lng, unvisited[i].lat, unvisited[i].lng);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearestIdx = i;
+                    }
+                }
+                current = unvisited[nearestIdx];
+                ordered.push(current);
+                unvisited.splice(nearestIdx, 1);
+            }
+
+            // 2-Opt Refinement Loop
+            let improved = true;
+            let count = 0;
+            while (improved && count < 40) {
+                improved = false;
+                count++;
+                for (let i = 0; i < ordered.length - 1; i++) {
+                    for (let j = i + 1; j < ordered.length; j++) {
+                        let dBefore = (i === 0 ? calculateHaversineDistance(start.lat, start.lng, ordered[i].lat, ordered[i].lng) : calculateHaversineDistance(ordered[i-1].lat, ordered[i-1].lng, ordered[i].lat, ordered[i].lng)) +
+                                      calculateHaversineDistance(ordered[j].lat, ordered[j].lng, j === ordered.length - 1 ? end.lat : ordered[j+1].lat, j === ordered.length - 1 ? end.lng : ordered[j+1].lng);
+
+                        let dAfter = (i === 0 ? calculateHaversineDistance(start.lat, start.lng, ordered[j].lat, ordered[j].lng) : calculateHaversineDistance(ordered[i-1].lat, ordered[i-1].lng, ordered[j].lat, ordered[j].lng)) +
+                                     calculateHaversineDistance(ordered[i].lat, ordered[i].lng, j === ordered.length - 1 ? end.lat : ordered[j+1].lat, j === ordered.length - 1 ? end.lng : ordered[j+1].lng);
+
+                        if (dAfter < dBefore) {
+                            let reversed = ordered.slice(i, j + 1).reverse();
+                            ordered.splice(i, j - i + 1, ...reversed);
+                            improved = true;
+                        }
+                    }
+                }
+            }
+
+            // Generate leg descriptions
+            let legs = [];
+            let totalDist = 0;
+            let prev = start;
+
+            ordered.forEach(p => {
+                let dist = calculateHaversineDistance(prev.lat, prev.lng, p.lat, p.lng);
+                let isVehicle = mode === 'blended' && dist > 1.2;
+                dist = isVehicle ? dist * 1.2 : dist * 1.35;
+                let time = Math.round((dist / (isVehicle ? 22 : 4.5)) * 60);
+
+                legs.push({ from: prev.name, to: p.name, distance: dist, type: isVehicle ? 'vehicle' : 'walking', time });
+                totalDist += dist;
+                prev = p;
+            });
+
+            // Final leg to destination
+            let finalDist = calculateHaversineDistance(prev.lat, prev.lng, end.lat, end.lng);
+            let isFinalVehicle = mode === 'blended' && finalDist > 1.5;
+            finalDist = isFinalVehicle ? finalDist * 1.2 : finalDist * 1.35;
+            let finalTime = Math.round((finalDist / (isFinalVehicle ? 22 : 4.5)) * 60);
+
+            legs.push({ from: prev.name, to: end.name, distance: finalDist, type: isFinalVehicle ? 'vehicle' : 'walking', time: finalTime });
+            totalDist += finalDist;
+
+            let totalTime = legs.reduce((acc, leg) => acc + leg.time, 0);
+
+            return {
+                waypoints: [start, ...ordered, end],
+                legs,
+                totalDistance: totalDist.toFixed(1),
+                totalTime
+            };
+        }
+
+        // --- 9. UI Output Rendering ---
+        function renderRouteOutputs() {
+            const w = currentRoutesData.walking;
+            const b = currentRoutesData.blended;
+
+            document.getElementById('walk-stats').innerText = `Total Distance: ${w.totalDistance} km | Est. Time: ${w.totalTime} mins`;
+            document.getElementById('walk-gmaps-btn').href = buildGoogleMapsUrl(w.waypoints);
+
+            const walkContainer = document.getElementById('walk-steps');
+            walkContainer.innerHTML = '';
+            w.legs.forEach((leg, idx) => {
+                walkContainer.innerHTML += `
+                    <div class="flex items-start gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
+                        <div class="bg-pujaDarkRed text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0">${idx + 1}</div>
+                        <div class="flex-grow">
+                            <p class="font-bold text-pujaDark">${leg.from} <i class="fa-solid fa-arrow-right text-[10px] text-gray-400 mx-1"></i> ${leg.to}</p>
+                            <p class="text-gray-500 mt-0.5"><i class="fa-solid fa-person-walking text-green-600 mr-1"></i> Walk • ~${leg.distance.toFixed(1)} km • ~${leg.time} mins</p>
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('blended-stats').innerText = `Total Distance: ${b.totalDistance} km | Est. Time: ${b.totalTime} mins`;
+            document.getElementById('blended-gmaps-btn').href = buildGoogleMapsUrl(b.waypoints);
+
+            const blendedContainer = document.getElementById('blended-steps');
+            blendedContainer.innerHTML = '';
+            b.legs.forEach((leg, idx) => {
+                const icon = leg.type === 'vehicle' ? '<i class="fa-solid fa-car text-blue-600 mr-1"></i> Vehicle Transfer' : '<i class="fa-solid fa-person-walking text-green-600 mr-1"></i> Walk';
+                blendedContainer.innerHTML += `
+                    <div class="flex items-start gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100 text-xs">
+                        <div class="bg-pujaGold text-pujaDark w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0">${idx + 1}</div>
+                        <div class="flex-grow">
+                            <p class="font-bold text-pujaDark">${leg.from} <i class="fa-solid fa-arrow-right text-[10px] text-gray-400 mx-1"></i> ${leg.to}</p>
+                            <p class="text-gray-500 mt-0.5">${icon} • ~${leg.distance.toFixed(1)} km • ~${leg.time} mins</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function buildGoogleMapsUrl(waypoints) {
+            if (waypoints.length < 2) return "#";
+            const origin = encodeURIComponent(`${waypoints[0].lat},${waypoints[0].lng}`);
+            const destination = encodeURIComponent(`${waypoints[waypoints.length - 1].lat},${waypoints[waypoints.length - 1].lng}`);
+
+            if (waypoints.length > 2) {
+                const intermediate = waypoints.slice(1, waypoints.length - 1).map(w => `${w.lat},${w.lng}`).join('|');
+                return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${encodeURIComponent(intermediate)}&travelmode=walking`;
+            }
+            return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`;
+        }
+
+        function switchRouteTab(mode) {
+            const btnWalk = document.getElementById('tab-walking');
+            const btnBlend = document.getElementById('tab-blended');
+            const panelWalk = document.getElementById('panel-walking');
+            const panelBlend = document.getElementById('panel-blended');
+
+            if (mode === 'walking') {
+                btnWalk.className = "flex-1 py-3 px-3 rounded-xl font-bold text-xs uppercase transition flex items-center justify-center gap-2 bg-pujaDarkRed text-white shadow-md";
+                btnBlend.className = "flex-1 py-3 px-3 rounded-xl font-bold text-xs uppercase transition flex items-center justify-center gap-2 bg-white text-gray-700 hover:bg-orange-50";
+                panelWalk.classList.remove('hidden');
+                panelBlend.classList.add('hidden');
+                renderRouteOnMap('walking');
+            } else {
+                btnBlend.className = "flex-1 py-3 px-3 rounded-xl font-bold text-xs uppercase transition flex items-center justify-center gap-2 bg-pujaDarkRed text-white shadow-md";
+                btnWalk.className = "flex-1 py-3 px-3 rounded-xl font-bold text-xs uppercase transition flex items-center justify-center gap-2 bg-white text-gray-700 hover:bg-orange-50";
+                panelBlend.classList.remove('hidden');
+                panelWalk.classList.add('hidden');
+                renderRouteOnMap('blended');
+            }
+        }
+
+        function renderRouteOnMap(mode) {
+            clearMapLayers();
+            plotMarkersOnMap();
+
+            if (!currentRoutesData) return;
+            const route = mode === 'walking' ? currentRoutesData.walking : currentRoutesData.blended;
+            const latLngs = route.waypoints.map(w => [w.lat, w.lng]);
+
+            const polyline = L.polyline(latLngs, {
+                color: mode === 'walking' ? '#D90429' : '#2563eb',
+                weight: 5,
+                opacity: 0.85,
+                dashArray: mode === 'walking' ? '8, 8' : null
+            }).addTo(map);
+            routePolylines.push(polyline);
+
+            map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+
+            // Start & End markers
+            const startPt = route.waypoints[0];
+            const endPt = route.waypoints[route.waypoints.length - 1];
+
+            L.marker([startPt.lat, startPt.lng], {
+                icon: L.divIcon({
+                    className: 'start-marker',
+                    html: `<div style="background-color:#16a34a; width:28px; height:28px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.4);"><i class="fa-solid fa-play"></i></div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                })
+            }).addTo(map).bindPopup(`<b>Start Point:</b> ${startPt.name}`);
+
+            L.marker([endPt.lat, endPt.lng], {
+                icon: L.divIcon({
+                    className: 'end-marker',
+                    html: `<div style="background-color:#dc2626; width:28px; height:28px; border-radius:50%; border:2px solid white; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.4);"><i class="fa-solid fa-flag-checkered"></i></div>`,
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                })
+            }).addTo(map).bindPopup(`<b>Final Destination:</b> ${endPt.name}`);
+        }
+
+        // --- 10. Modal Controls ---
+        function openHostingModal() {
+            document.getElementById('hosting-modal').classList.remove('hidden');
+        }
+
+        function closeHostingModal() {
+            document.getElementById('hosting-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

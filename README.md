@@ -10,4 +10,4 @@ If this route planner helped you, consider supporting the project via UPI!
 ![## ☕ Support the Project
 If this route planner helped you, consider supporting the project via UPI!
 
-![ranadas24012002-1@okaxis](qr.png)](qr.png)
+![ranadas24012002-1@okaxis](qr.jpeg)](qr.jpeg)

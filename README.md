@@ -1,9 +1,8 @@
-# Durga_Puja_Route_Planner
 # 🪔 Kolkata Durga Puja Route Planner 2026
 
 A fast, responsive single-page web application designed to help festival-goers seamlessly plan their Durga Puja pandal hopping routes across Kolkata.
 
-🚀 **Live Web App:** [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/)
+🚀 **Live Web App:** [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/durgapujaplanner_code)
 
 ---
 

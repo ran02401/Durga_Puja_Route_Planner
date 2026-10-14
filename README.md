@@ -2,7 +2,7 @@
 
 A fast, responsive single-page web application designed to help festival-goers seamlessly plan their Durga Puja pandal hopping routes across Kolkata.
 
-🚀 **Live Web App:** [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/durgapujaplanner_code)
+🚀 **Live Web App:** [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/durgapujaplanner_code.html)
 
 ---
 
@@ -24,7 +24,7 @@ A fast, responsive single-page web application designed to help festival-goers s
 
 ## 📱 How to Use
 
-1. Open the web app on your phone or browser at [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/durgapujaplanner_code).
+1. Open the web app on your phone or browser at [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/durgapujaplanner_code.html).
 2. Select or view pandals along your preferred route.
 3. Tap the Google Maps link for direct directions to the pandal or nearest metro station.
 4. Support the project development via the UPI payment section at the bottom!

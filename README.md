@@ -10,9 +10,6 @@ A fast, responsive single-page web application designed to help festival-goers s
 
 - **Smart Pandal Navigation:** Direct Google Maps navigation links for major Kolkata pandals.
 - **Mobile-First Design:** Optimized for smooth performance on smartphones during peak crowd hours.
-- **Integrated Sponsorship/Donation Section:**
-  - **Mobile:** Direct `upi://` deep linking for instant payment via Google Pay, PhonePe, or Paytm.
-  - **Desktop:** QR code display for quick smartphone scanning.
 - **SEO & Social Preview Ready:** Optimized with Open Graph and search metadata for effortless sharing across WhatsApp, Facebook, and Google Search.
 
 ---
@@ -27,7 +24,7 @@ A fast, responsive single-page web application designed to help festival-goers s
 
 ## 📱 How to Use
 
-1. Open the web app on your phone or browser at [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/).
+1. Open the web app on your phone or browser at [https://ran02401.github.io/Durga_Puja_Route_Planner/](https://ran02401.github.io/Durga_Puja_Route_Planner/durgapujaplanner_code).
 2. Select or view pandals along your preferred route.
 3. Tap the Google Maps link for direct directions to the pandal or nearest metro station.
 4. Support the project development via the UPI payment section at the bottom!
